@@ -1,0 +1,150 @@
+  
+  <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScanlistMarket - Cadastro de Produto</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDK9wuXRKav0s2bC_-rFcHSefhXBgy9Qj8",
+      authDomain: "scanlistmarket.firebaseapp.com",
+      databaseURL: "https://scanlistmarket-default-rtdb.firebaseio.com",
+      projectId: "scanlistmarket",
+      storageBucket: "scanlistmarket.firebasestorage.app",
+      messagingSenderId: "481070272166",
+      appId: "1:481070272166:web:4aae42bfebdca0e9b66e67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.salvarProduto = () => {
+      const codigo = document.getElementById("codigo").value;
+      const nome = document.getElementById("nome").value;
+      const preco = document.getElementById("preco").value;
+
+      const produtoRef = push(ref(db, 'produtos'));
+      set(produtoRef, {
+        codigo: codigo,
+        nome: nome,
+        preco: parseFloat(preco),
+        data: new Date().toLocaleString()
+      }).then(() => {
+        const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
+        beep.play();
+        alert("✅ Produto salvo com sucesso!");
+        document.getElementById("codigo").value = "";
+        document.getElementById("nome").value = "";
+        document.getElementById("preco").value = "";
+      }).catch(error => {
+        console.error("Erro ao salvar:", error);
+      });
+    };
+
+    window.startScanner = () => {
+      const reader = document.getElementById("reader");
+      reader.style.display = 'block';
+      const html5Qr = new Html5Qrcode("reader");
+      html5Qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          document.getElementById("codigo").value = decodedText;
+          html5Qr.stop();
+          reader.style.display = 'none';
+        },
+        (err) => {}
+      );
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      color: #ff3c3c;
+      margin: 20px 0 10px;
+      font-size: 1.8rem;
+    }
+    #reader {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 20px;
+      display: none;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    form {
+      background: #1f1f1f;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      max-width: 480px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    label {
+      font-weight: bold;
+      color: #ff7070;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #2c2c2c;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px;
+      background-color: #ff3c3c;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #e03030;
+    }
+    .icon {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1><i class="fas fa-barcode icon"></i>ScanlistMarket</h1>
+  <div id="reader"></div>
+  <form onsubmit="event.preventDefault(); salvarProduto();">
+    <label for="codigo"><i class="fas fa-barcode icon"></i>Código de Barras:</label>
+    <input type="text" id="codigo" placeholder="Escaneie ou digite..." required />
+    <button type="button" onclick="startScanner()"><i class="fas fa-camera icon"></i>Usar Câmera</button>
+
+    <label for="nome"><i class="fas fa-box icon"></i>Nome do Produto:</label>
+    <input type="text" id="nome" placeholder="Digite o nome do produto" required />
+
+    <label for="preco"><i class="fas fa-dollar-sign icon"></i>Preço:</label>
+    <input type="number" id="preco" placeholder="Ex: 9.99" step="0.01" required />
+
+    <button type="submit"><i class="fas fa-save icon"></i>Salvar no Firebase</button>
+  </form>
+</body>
+</html>
